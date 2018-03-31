@@ -1,4 +1,4 @@
-# Rubyhome-SRP
+# RubyHome-SRP
 
 Secure Remote Password protocol (SRP-6a) with HomeKit Accessory Protocol Specification (HAP) modifications.
 
@@ -16,7 +16,7 @@ Secure Remote Password protocol (SRP-6a) with HomeKit Accessory Protocol Specifi
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rubyhome-srp'
+gem 'ruby_home-srp'
 ```
 
 And then execute:
@@ -25,7 +25,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install rubyhome-srp
+    $ gem install ruby_home-srp
 
 ## Contributing
 
