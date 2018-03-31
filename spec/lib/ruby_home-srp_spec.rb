@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../../lib/rubyhome-srp'
+require_relative '../../lib/ruby_home-srp'
 
 RSpec.describe Rubyhome::SRP::Verifier do
   let(:username) { 'alice' }

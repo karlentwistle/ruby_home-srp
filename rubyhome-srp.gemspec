@@ -1,10 +1,10 @@
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'rubyhome-srp/version'
+require 'ruby_home-srp/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'rubyhome-srp'
+  spec.name          = 'ruby_home-srp'
   spec.version       = Rubyhome::SRP::VERSION
   spec.authors       = ['Karl Entwistle']
   spec.email         = ['karl@entwistle.com']
@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description   = <<~DESCRIPTION
     Secure Remote Password protocol (SRP-6a) with HAP modifications
   DESCRIPTION
-  spec.homepage      = 'https://github.com/karlentwistle/rubyhome-srp'
+  spec.homepage      = 'https://github.com/karlentwistle/ruby_home-srp'
 
   spec.files         = Dir.glob('lib/**/*')
   spec.test_files    = Dir.glob('spec/*')

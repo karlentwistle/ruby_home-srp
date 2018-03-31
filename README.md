@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/karlentwistle/rubyhome-srp.svg?branch=master)](https://travis-ci.org/karlentwistle/rubyhome-srp)
+[![Build Status](https://travis-ci.org/karlentwistle/ruby_home-srp.svg?branch=master)](https://travis-ci.org/karlentwistle/ruby_home-srp)
 
 # RubyHome-SRP
 
