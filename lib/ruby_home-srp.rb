@@ -1,7 +1,7 @@
 require 'securerandom'
 require 'srp'
 
-module Rubyhome
+module RubyHome
   module SRP
     class << self
       ::SRP.singleton_methods.each do |m|

@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../lib/rubyhome-srp'
+require_relative '../../lib/ruby_home-srp'
 
-RSpec.describe Rubyhome::SRP::Verifier do
+RSpec.describe RubyHome::SRP::Verifier do
   let(:username) { 'alice' }
   let(:password) { 'password123'  }
   let(:a) do
@@ -110,20 +110,20 @@ RSpec.describe Rubyhome::SRP::Verifier do
 
   describe '#generate_userauth' do
     it 'returns hash containing username' do
-      srp_verifier = Rubyhome::SRP::Verifier.new
+      srp_verifier = RubyHome::SRP::Verifier.new
       subject = srp_verifier.generate_userauth(username, password)
       expect(subject).to include(username: username)
     end
 
     it 'returns hash containing random salt' do
-      srp_verifier = Rubyhome::SRP::Verifier.new
+      srp_verifier = RubyHome::SRP::Verifier.new
       subject = srp_verifier.generate_userauth(username, password)
       expect(subject).to include(salt: a_kind_of(String))
       expect(subject[:salt].length).to be >= 31
     end
 
     it 'returns hash containing verifier' do
-      srp_verifier = Rubyhome::SRP::Verifier.new
+      srp_verifier = RubyHome::SRP::Verifier.new
       srp_verifier.salt = salt
       subject = srp_verifier.generate_userauth(username, password)
       expect(subject).to include(verifier: verifier)
