@@ -232,29 +232,10 @@ module RubyHome
         @M = SRP.calc_M(username, xsalt, @A, xbb, @K, @N, @g)
 
         # Calculate the H(A,M,K) verifier
-        @H_AMK = '%x' % SRP.calc_H_AMK(@A, @M, @K, @N, @g)
+        @H_AMK = '%x' % SRP.calc_H_AMK(@A, '%x' % @M, @K, @N, @g)
 
         # Return the 'M' matcher to be sent to the server
         '%x' % @M
-      end
-
-      # Phase 2 : Step 3 : Verify that the server provided H(A,M,K) value
-      # matches the client generated version. This is the last step of mutual
-      # authentication and confirms that the client and server have
-      # completed the auth process. The comparison of local and server
-      # H_AMK values is done using a secure constant-time comparison
-      # method so as not to leak information.
-      #
-      # @param server_HAMK [String] the server provided H_AMK in hex
-      # @return [true,false] returns true if the server and client agree on the H_AMK value, false if not
-      def verify(server_HAMK)
-        return false unless @H_AMK && server_HAMK
-        return false unless server_HAMK.is_a?(String)
-        return false unless server_HAMK =~ /^[a-fA-F0-9]+$/
-
-        # Hash the comparison params to ensure that both strings
-        # being compared are equal length 32 Byte strings.
-        return Digest::SHA256.hexdigest(@H_AMK) == Digest::SHA256.hexdigest(server_HAMK)
       end
     end
   end
