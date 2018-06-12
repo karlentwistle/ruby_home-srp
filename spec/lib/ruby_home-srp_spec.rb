@@ -130,6 +130,33 @@ RSpec.describe RubyHome::SRP::Verifier do
     end
   end
 
+  describe '#start_authentication' do
+    it 'correctly computed publickey' do
+      srp_client = RubyHome::SRP::Client.new(3072)
+      srp_client.a = a.hex
+      client_A = srp_client.start_authentication()
+      expect(client_A).eql? a_pub
+    end
+  end
+
+  describe '#get_challenge_and_proof' do
+    it 'correctly computed publickey' do
+      srp_verifier = described_class.new(3072)
+      srp_verifier.b = b.hex
+      res = srp_verifier.get_challenge_and_proof(username, verifier, salt)
+      expect(res[:challenge][:B]).eql? b_pub
+      expect(res[:proof][:B]).eql? b_pub
+    end
+  end
+
+  describe '#process_challenge' do
+    it 'correctly computed proof' do
+      srp_client = RubyHome::SRP::Client.new(3072)
+      srp_client.a = a.hex
+      expect(srp_client.process_challenge(username, password, salt, b_pub)).eql? client_proof
+    end
+  end
+
   describe '#verify_session' do
     let(:proof) do
       {
@@ -172,4 +199,3 @@ RSpec.describe RubyHome::SRP::Verifier do
     end
   end
 end
-
