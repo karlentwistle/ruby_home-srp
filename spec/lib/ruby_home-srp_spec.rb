@@ -1,7 +1,7 @@
 require 'spec_helper'
 require_relative '../../lib/ruby_home-srp'
 
-RSpec.describe RubyHome::SRP::Verifier do
+RSpec.describe RubyHome::SRP do
   let(:username) { 'alice' }
   let(:password) { 'password123'  }
   let(:a) do
@@ -108,68 +108,108 @@ RSpec.describe RubyHome::SRP::Verifier do
     }.join.downcase
   end
 
-  describe '#generate_userauth' do
-    it 'returns hash containing username' do
-      srp_verifier = RubyHome::SRP::Verifier.new
-      subject = srp_verifier.generate_userauth(username, password)
-      expect(subject).to include(username: username)
+  describe RubyHome::SRP::Verifier do
+    describe '#generate_userauth' do
+      it 'returns hash containing username' do
+        srp_verifier = RubyHome::SRP::Verifier.new
+        subject = srp_verifier.generate_userauth(username, password)
+        expect(subject).to include(username: username)
+      end
+
+      it 'returns hash containing random salt' do
+        srp_verifier = RubyHome::SRP::Verifier.new
+        subject = srp_verifier.generate_userauth(username, password)
+        expect(subject).to include(salt: a_kind_of(String))
+        expect(subject[:salt].length).to be >= 31
+      end
+
+      it 'returns hash containing verifier' do
+        srp_verifier = RubyHome::SRP::Verifier.new
+        srp_verifier.salt = salt
+        subject = srp_verifier.generate_userauth(username, password)
+        expect(subject).to include(verifier: verifier)
+      end
     end
 
-    it 'returns hash containing random salt' do
-      srp_verifier = RubyHome::SRP::Verifier.new
-      subject = srp_verifier.generate_userauth(username, password)
-      expect(subject).to include(salt: a_kind_of(String))
-      expect(subject[:salt].length).to be >= 31
+    describe '#get_challenge_and_proof' do
+      it 'correctly computed publickey' do
+        srp_verifier = described_class.new(3072)
+        srp_verifier.b = b.hex
+        res = srp_verifier.get_challenge_and_proof(username, verifier, salt)
+        expect(res[:challenge][:B]).eql? b_pub
+        expect(res[:proof][:B]).eql? b_pub
+      end
     end
 
-    it 'returns hash containing verifier' do
-      srp_verifier = RubyHome::SRP::Verifier.new
-      srp_verifier.salt = salt
-      subject = srp_verifier.generate_userauth(username, password)
-      expect(subject).to include(verifier: verifier)
+    describe '#verify_session' do
+      let(:proof) do
+        {
+          b: b,
+          B: b_pub,
+          A: a_pub,
+          I: username,
+          s: salt,
+          v: verifier,
+        }
+      end
+
+      it 'returns truthy' do
+        srp_verifier = described_class.new
+        expect(srp_verifier.verify_session(proof, client_proof)).to be_truthy
+      end
+
+      it 'correctly computed S' do
+        srp_verifier = described_class.new
+        srp_verifier.verify_session(proof, client_proof)
+        expect(srp_verifier.S).to eql(premaster_secret)
+      end
+
+      it 'correctly computed K' do
+        srp_verifier = described_class.new
+        srp_verifier.verify_session(proof, client_proof)
+        expect(srp_verifier.K).to eql(session_key)
+      end
+
+      it 'correctly computed u' do
+        srp_verifier = described_class.new
+        srp_verifier.verify_session(proof, client_proof)
+        expect(srp_verifier.u).to eql(u)
+      end
+
+      it 'returns server_proof' do
+        srp_verifier = described_class.new
+        subject = srp_verifier.verify_session(proof, client_proof)
+        expect(subject).to eql(server_proof)
+      end
     end
   end
 
-  describe '#verify_session' do
-    let(:proof) do
-      {
-        b: b,
-        B: b_pub,
-        A: a_pub,
-        I: username,
-        s: salt,
-        v: verifier,
-      }
+  describe RubyHome::SRP::Client do
+    describe '#start_authentication' do
+      it 'correctly computed publickey' do
+        srp_client = described_class.new(3072)
+        srp_client.a = a.hex
+        expect(srp_client.start_authentication()).eql? a_pub
+      end
     end
 
-    it 'returns truthy' do
-      srp_verifier = described_class.new
-      expect(srp_verifier.verify_session(proof, client_proof)).to be_truthy
+    describe '#process_challenge' do
+      it 'correctly computed proof' do
+        srp_client = described_class.new(3072)
+        srp_client.a = a.hex
+        srp_client.start_authentication()
+        expect(srp_client.process_challenge(username, password, salt, b_pub)).eql? client_proof
+      end
     end
 
-    it 'correctly computed S' do
-      srp_verifier = described_class.new
-      srp_verifier.verify_session(proof, client_proof)
-      expect(srp_verifier.S).to eql(premaster_secret)
-    end
-
-    it 'correctly computed K' do
-      srp_verifier = described_class.new
-      srp_verifier.verify_session(proof, client_proof)
-      expect(srp_verifier.K).to eql(session_key)
-    end
-
-    it 'correctly computed u' do
-      srp_verifier = described_class.new
-      srp_verifier.verify_session(proof, client_proof)
-      expect(srp_verifier.u).to eql(u)
-    end
-
-    it 'returns server_proof' do
-      srp_verifier = described_class.new
-      subject = srp_verifier.verify_session(proof, client_proof)
-      expect(subject).to eql(server_proof)
+    describe '#verify' do
+      it 'returns truthy' do
+        srp_client = described_class.new(3072)
+        srp_client.a = a.hex
+        srp_client.start_authentication()
+        srp_client.process_challenge(username, password, salt, b_pub)
+        expect(srp_client.verify(server_proof)).to be_truthy
+      end
     end
   end
 end
-
