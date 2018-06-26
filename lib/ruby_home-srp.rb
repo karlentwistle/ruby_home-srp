@@ -26,7 +26,7 @@ module RubyHome
           next unless s
           shex = s.class == String ? s : '%x' % s
           if shex.length > nlen
-              raise 'Bit width does not match - client uses different prime'
+            raise 'Bit width does not match - client uses different prime'
           end
           '0' * (nlen - shex.length) + shex
         }.join('')
@@ -97,7 +97,7 @@ module RubyHome
 
     class Verifier < ::SRP::Verifier
       attr_reader :u
-      attr_writer :salt
+      attr_writer :salt, :b
 
       def initialize group=3072
         # select modulus (N) and generator (g)
@@ -173,7 +173,69 @@ module RubyHome
       def generate_B xverifier
         v = xverifier.to_i(16)
         @b ||= random_bignum
-        @B = '%x' % SRP.calc_B(@b, k, v, @N, @g.hex)
+        @B = '%x' % SRP.calc_B(@b, @k, v, @N, @g.hex)
+      end
+    end
+
+    class Client < ::SRP::Client
+      attr_writer :a
+
+      def initialize group=3072
+        # select modulus (N) and generator (g)
+        @N, @g = SRP.Ng group
+        @k = SRP.calc_k(@N, @g)
+      end
+
+      # Phase 1 : Step 1 : Start the authentication process by generating the
+      # client 'a' and 'A' values. Public 'A' should later be sent along with
+      # the username, to the server verifier to continue the auth process. The
+      # internal secret 'a' value should remain private.
+      #
+      # @return [String] the value of 'A' in hex
+      def start_authentication
+        @a ||= SecureRandom.hex(32).hex
+        @A = "%x" % SRP.calc_A(@a, @N, @g.hex)
+      end
+
+      # Phase 2 : Step 1 : Process the salt and B values provided by the server.
+      #
+      # @param username [String] the client provided authentication username
+      # @param password [String] the client provided authentication password
+      # @param xsalt [String] the server provided salt for the username in hex
+      # @param xbb [String] the server verifier 'B' value in hex
+      # @return [String] the client 'M' value in hex
+      def process_challenge(username, password, xsalt, xbb)
+        raise ArgumentError, 'username must be a string' unless username.is_a?(String) && !username.empty?
+        raise ArgumentError, 'password must be a string' unless password.is_a?(String) && !password.empty?
+        raise ArgumentError, 'xsalt must be a string' unless xsalt.is_a?(String)
+        raise ArgumentError, 'xsalt must be a hex string' unless xsalt =~ /^[a-fA-F0-9]+$/
+        raise ArgumentError, 'xbb must be a string' unless xbb.is_a?(String)
+        raise ArgumentError, 'xbb must be a hex string' unless xbb =~ /^[a-fA-F0-9]+$/
+
+        # Convert the 'B' hex value to an Integer
+        bb = xbb.to_i(16)
+
+        # SRP-6a safety check
+        return false if (bb % @N).zero?
+
+        x = SRP.calc_x(username, password, xsalt)
+        u = SRP.calc_u(@A, xbb, @N)
+
+        # SRP-6a safety check
+        return false if u.zero?
+
+        # Calculate session key 'S' and secret key 'K'
+        @S = '%x' % SRP.calc_client_S(bb, @a, @k, x, u, @N, @g.hex)
+        @K = SRP.sha512_hex(@S)
+
+        # Calculate the 'M' matcher
+        @M = SRP.calc_M(username, xsalt, @A, xbb, @K, @N, @g)
+
+        # Calculate the H(A,M,K) verifier
+        @H_AMK = '%x' % SRP.calc_H_AMK(@A, '%x' % @M, @K, @N, @g)
+
+        # Return the 'M' matcher to be sent to the server
+        '%x' % @M
       end
     end
   end
