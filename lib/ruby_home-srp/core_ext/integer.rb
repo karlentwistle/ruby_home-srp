@@ -5,7 +5,7 @@ class Integer
     if hex_string.length.even?
       hex_string
     else
-      hex_string + pad_char
+      pad_char + hex_string
     end
   end
 end
