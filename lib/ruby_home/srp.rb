@@ -1,6 +1,6 @@
 require 'securerandom'
 require 'srp'
-require_relative 'ruby_home-srp/core_ext/integer'
+require_relative 'core_ext/integer'
 
 module RubyHome
   module SRP

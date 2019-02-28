@@ -1,5 +1,4 @@
 require 'spec_helper'
-require_relative '../../lib/ruby_home-srp'
 
 RSpec.describe RubyHome::SRP do
   let(:username) { 'alice' }
