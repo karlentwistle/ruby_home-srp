@@ -2,5 +2,6 @@ language: ruby
 notifications:
   email: false
 rvm:
-  - 2.5.0
+  - 2.5
+  - 2.6
 sudo: false
