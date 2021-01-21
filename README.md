@@ -1,5 +1,3 @@
-[![Build Status](https://www.travis-ci.com/karlentwistle/ruby_home-srp.svg?branch=master)](https://www.travis-ci.com/karlentwistle/ruby_home-srp)
-
 # RubyHome-SRP
 
 Secure Remote Password protocol (SRP-6a) with HomeKit Accessory Protocol Specification (HAP) modifications.
