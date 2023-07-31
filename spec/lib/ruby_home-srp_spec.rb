@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe RubyHome::SRP do
+RSpec.describe "RubyHome::SRP" do
   let(:username) { 'alice' }
   let(:password) { 'password123'  }
   let(:a) do
